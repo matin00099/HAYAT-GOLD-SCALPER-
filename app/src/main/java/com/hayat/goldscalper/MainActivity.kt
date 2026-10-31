@@ -3,21 +3,21 @@ package com.hayat.goldscalper
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import java.text.DecimalFormat
 
 private val Black = Color(0xFF080808)
 private val Panel = Color(0xFF171717)
@@ -26,122 +26,273 @@ private val Muted = Color(0xFFB8B8B8)
 private val Green = Color(0xFF20D66B)
 private val Red = Color(0xFFFF5252)
 
+private val moneyFormat = DecimalFormat("0.00")
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent { HayatApp() }
+        setContent {
+            HayatApp()
+        }
     }
 }
-
 @Composable
 fun HayatApp() {
-    var message by remember { mutableStateOf("نسخه اولیه؛ هنوز به VPS و MT5 متصل نیست") }
-    var tab by remember { mutableStateOf("داشبورد") }
-    var risk by remember { mutableStateOf("0.25") }
-    var dailyLimit by remember { mutableStateOf("1.50") }
-    var spread by remember { mutableStateOf("80") }
-    var rr by remember { mutableStateOf("1.20") }
+    var isRunning by remember { mutableStateOf(false) }
+    var emergencyStop by remember { mutableStateOf(false) }
+    var selectedTab by remember { mutableStateOf("داشبورد") }
 
-    MaterialTheme(colorScheme = darkColorScheme(
-        background = Black, surface = Panel, primary = Gold,
-        onBackground = Color.White, onSurface = Color.White
-    )) {
-        Scaffold(
-            containerColor = Black,
-            snackbarHost = { SnackbarHost(remember { SnackbarHostState() }) }
-        ) { padding ->
+    var risk by remember { mutableStateOf("0.25") }
+    var dailyLimit by remember { mutableStateOf("1.5") }
+    var spreadLimit by remember { mutableStateOf("80") }
+
+    var status by remember {
+        mutableStateOf("آماده به کار")
+    }
+
+    MaterialTheme(
+        colorScheme = darkColorScheme(
+            background = Black,
+            surface = Panel,
+            primary = Gold
+        )
+    ) {
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = Black
+        ) {
             LazyColumn(
-                modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
                 item {
-                    Column(Modifier.fillMaxWidth().padding(top = 18.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("♛  HAYAT", color = Gold, fontSize = 34.sp, fontWeight = FontWeight.Black)
-                        Text("GOLD SCALPER", color = Gold, fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                        Text("ربات هوشمند معاملات طلا", color = Muted, fontSize = 13.sp)
-                        Spacer(Modifier.height(12.dp))
-                        Surface(color = Color(0xFF321B12), shape = RoundedCornerShape(30.dp)) {
-                            Text("●  اتصال MT5: برقرار نشده     ●  VPS: نامشخص",
-                                color = Color(0xFFFFB74D), modifier = Modifier.padding(12.dp), fontSize = 12.sp)
-                        }
+                    Column {
+                        Text(
+                            text = "HAYAT",
+                            color = Gold,
+                            fontSize = 30.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = "GOLD SCALPER",
+                            color = Muted,
+                            fontSize = 14.sp
+                        )
                     }
                 }
+
                 item {
-                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        MetricCard("موجودی حساب", "—", Modifier.weight(1f))
-                        MetricCard("سود و زیان امروز", "—", Modifier.weight(1f))
-                    }
-                }
-                item {
-                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        MetricCard("اکوییتی حساب", "—", Modifier.weight(1f))
-                        MetricCard("ضرر روزانه", "—", Modifier.weight(1f))
-                    }
-                }
-                item {
-                    CardBox {
-                        Text("وضعیت ربات", color = Gold, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                        Spacer(Modifier.height(8.dp))
-                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                            Text("نماد معاملاتی", color = Muted)
-                            Text("XAUUSD", fontWeight = FontWeight.Bold)
-                        }
-                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                            Text("معاملات باز", color = Muted)
-                            Text("—")
-                        }
-                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                            Text("وضعیت اجرا", color = Muted)
-                            Text("غیرفعال / بدون اتصال", color = Red)
-                        }
-                        Spacer(Modifier.height(10.dp))
-                        Text("نمودار و اطلاعات زنده پس از اتصال امن به سرویس VPS نمایش داده می‌شود.",
-                            color = Muted, fontSize = 12.sp)
-                    }
-                }
-                item {
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Button(
-                            onClick = { message = "برای کنترل واقعی، ابتدا باید سرویس امن VPS نصب و متصل شود." },
-                            modifier = Modifier.weight(1f),
-                            colors = ButtonDefaults.buttonColors(containerColor = Gold, contentColor = Black)
-                        ) { Text("▶ شروع ربات", fontWeight = FontWeight.Bold) }
-                        OutlinedButton(
-                            onClick = { message = "فرمان توقف تا زمان اتصال VPS قابل ارسال نیست." },
-                            modifier = Modifier.weight(1f),
-                            colors = ButtonDefaults.outlinedButtonColors(contentColor = Gold)
-                        ) { Text("Ⅱ توقف") }
-                    }
-                    Button(
-                        onClick = { message = "توقف اضطراری واقعی فقط پس از اتصال سرویس VPS فعال می‌شود." },
+                    Row(
                         modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF7D1717))
-                    ) { Text("■ توقف اضطراری", color = Color.White, fontWeight = FontWeight.Bold) }
-                    Text(message, color = Muted, fontSize = 11.sp, textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth())
-                }
-                item {
-                    CardBox {
-                        Text("تنظیمات مدیریت ریسک", color = Gold, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                        SettingLine("ریسک هر معامله (%)", risk) { risk = it }
-                        SettingLine("حد ضرر روزانه (%)", dailyLimit) { dailyLimit = it }
-                        SettingLine("حداکثر اسپرد (پوینت)", spread) { spread = it }
-                        SettingLine("نسبت سود به ضرر", rr) { rr = it }
-                        Text("این مقادیر فعلاً فقط در رابط کاربری هستند و به EA ارسال نمی‌شوند.",
-                            color = Color(0xFFFFB74D), fontSize = 11.sp)
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        InfoCard("موجودی", "—")
+                        InfoCard("اکوییتی", "—")
                     }
                 }
+
                 item {
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-                        listOf("داشبورد", "معاملات", "تاریخچه", "تنظیمات").forEach {
-                            TextButton(onClick = { tab = it }) {
-                                Text(it, color = if (tab == it) Gold else Muted, fontSize = 12.sp)
-                            }
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        InfoCard("سود امروز", "—")
+                        InfoCard("معاملات باز", "0")
+                    }
+                }
+
+                item {
+                    SectionTitle("وضعیت ربات")
+
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(
+                            containerColor = Panel
+                        ),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            Text(
+                                text = status,
+                                color = if (isRunning) Green else Gold,
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+
+                            Text(
+                                text = "نماد معاملاتی: XAUUSD",
+                                color = Color.White
+                            )
+
+                            Text(
+                                text = "تایم‌فریم ورود: M1",
+                                color = Muted
+                            )
+
+                            Text(
+                                text = "تایم‌فریم روند: M5",
+                                color = Muted
+                            )
+
+                            Text(
+                                text = "اتصال MT5: برقرار نشده",
+                                color = Red
+                            )
                         }
                     }
-                    Text("بخش انتخاب‌شده: $tab", color = Muted, fontSize = 11.sp,
-                        modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
-                    Spacer(Modifier.height(24.dp))
+                }
+
+                item {
+                    SectionTitle("کنترل ربات")
+
+                    Button(
+                        onClick = {
+                            if (!emergencyStop) {
+                                isRunning = !isRunning
+                                status = if (isRunning) {
+                                    "ربات فعال است؛ اتصال معاملاتی هنوز برقرار نیست"
+                                } else {
+                                    "ربات متوقف شد"
+                                }
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = if (isRunning) Red else Green
+                        )
+                    ) {
+                        Text(
+                            if (isRunning) "توقف ربات" else "شروع ربات",
+                            color = Color.Black
+                        )
+                    }
+
+                    Button(
+                        onClick = {
+                            isRunning = false
+                            emergencyStop = true
+                            status = "توقف اضطراری فعال شد"
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Red
+                        )
+                    ) {
+                        Text(
+                            "توقف اضطراری",
+                            color = Color.White
+                        )
+                    }
+
+                    OutlinedButton(
+                        onClick = {
+                            emergencyStop = false
+                            status = "توقف اضطراری غیرفعال شد"
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            "بازنشانی توقف اضطراری",
+                            color = Gold
+                        )
+                    }
+                }
+
+                item {
+                    SectionTitle("مدیریت ریسک")
+
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(
+                            containerColor = Panel
+                        )
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            SettingField(
+                                title = "ریسک هر معامله (درصد)",
+                                value = risk,
+                                onValueChange = { risk = it }
+                            )
+
+                            SettingField(
+                                title = "حداکثر ضرر روزانه (درصد)",
+                                value = dailyLimit,
+                                onValueChange = { dailyLimit = it }
+                            )
+
+                            SettingField(
+                                title = "حداکثر اسپرد (پوینت)",
+                                value = spreadLimit,
+                                onValueChange = { spreadLimit = it }
+                            )
+
+                            Text(
+                                text = "حداکثر معاملات هم‌زمان: ۱",
+                                color = Muted
+                            )
+
+                            Text(
+                                text = "استراتژی: بدون مارتینگل",
+                                color = Muted
+                            )
+                        }
+                    }
+                }
+
+                item {
+                    SectionTitle("وضعیت اتصال")
+
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(
+                            containerColor = Panel
+                        )
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            ConnectionRow("اینترنت", "بررسی نشده")
+                            ConnectionRow("قیمت زنده طلا", "متصل نیست")
+                            ConnectionRow("LiteFinance MT5", "متصل نیست")
+                            ConnectionRow("VPS", "استفاده نشده")
+                        }
+                    }
+                }
+
+                item {
+                    SectionTitle("تاریخچه معاملات")
+
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(
+                            containerColor = Panel
+                        )
+                    ) {
+                        Text(
+                            text = "هنوز اطلاعات معامله‌ای دریافت نشده است.",
+                            color = Muted,
+                            modifier = Modifier.padding(16.dp)
+                        )
+                    }
+                }
+
+                item {
+                    Text(
+                        text = "نسخه آزمایشی رابط کاربری HAYAT",
+                        color = Muted,
+                        fontSize = 11.sp,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    )
                 }
             }
         }
@@ -149,34 +300,95 @@ fun HayatApp() {
 }
 
 @Composable
-fun MetricCard(title: String, value: String, modifier: Modifier = Modifier) {
-    Card(modifier = modifier, colors = CardDefaults.cardColors(containerColor = Panel),
-        shape = RoundedCornerShape(18.dp)) {
-        Column(Modifier.padding(16.dp).fillMaxWidth()) {
-            Text(title, color = Muted, fontSize = 12.sp)
-            Spacer(Modifier.height(8.dp))
-            Text(value, color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Bold)
+fun InfoCard(
+    title: String,
+    value: String
+) {
+    Card(
+        modifier = Modifier
+            .width(155.dp)
+            .height(95.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Panel
+        ),
+        shape = RoundedCornerShape(14.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(12.dp),
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = title,
+                color = Muted,
+                fontSize = 13.sp
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = value,
+                color = Gold,
+                fontSize = 21.sp,
+                fontWeight = FontWeight.Bold
+            )
         }
     }
 }
 
 @Composable
-fun CardBox(content: @Composable ColumnScope.() -> Unit) {
-    Card(colors = CardDefaults.cardColors(containerColor = Panel),
-        shape = RoundedCornerShape(18.dp), modifier = Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp), content = content)
+fun SectionTitle(title: String) {
+    Text(
+        text = title,
+        color = Gold,
+        fontSize = 17.sp,
+        fontWeight = FontWeight.Bold
+    )
+}
+
+@Composable
+fun SettingField(
+    title: String,
+    value: String,
+    onValueChange: (String) -> Unit
+) {
+    Column {
+        Text(
+            text = title,
+            color = Muted,
+            fontSize = 13.sp
+        )
+
+        OutlinedTextField(
+            value = value,
+            onValueChange = onValueChange,
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Decimal
+            ),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedTextColor = Color.White,
+                unfocusedTextColor = Color.White,
+                focusedBorderColor = Gold,
+                unfocusedBorderColor = Muted,
+                cursorColor = Gold
+            )
+        )
     }
 }
 
 @Composable
-fun SettingLine(label: String, value: String, onValue: (String) -> Unit) {
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-        Text(label, color = Muted, modifier = Modifier.weight(1f), fontSize = 13.sp)
-        OutlinedTextField(value = value, onValueChange = onValue, singleLine = true,
-            modifier = Modifier.width(100.dp), textStyle = LocalTextStyle.current.copy(color = Color.White),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = Gold, unfocusedBorderColor = Color.DarkGray,
-                focusedTextColor = Color.White, unfocusedTextColor = Color.White
-            ))
+fun ConnectionRow(
+    title: String,
+    value: String
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(title, color = Color.White)
+        Text(value, color = Red)
     }
 }

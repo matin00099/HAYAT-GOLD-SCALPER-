@@ -46,8 +46,8 @@ fun HayatApp() {
     var dailyLimit by remember { mutableStateOf("1.5") }
     var spreadLimit by remember { mutableStateOf("80") }
 
-    var status by remember {
-        mutableStateOf("آماده به کار")
+    var strategyStatus by remember {
+    mutableStateOf("موتور تحلیل آماده است؛ منتظر داده بازار")
     }
 
     MaterialTheme(

@@ -143,6 +143,11 @@ fun HayatApp() {
                                 text = "اتصال MT5: برقرار نشده",
                                 color = Red
                             )
+                            Text(
+    text = strategyStatus,
+    color = Gold,
+    fontSize = 13.sp
+)
                         }
                     }
                 }

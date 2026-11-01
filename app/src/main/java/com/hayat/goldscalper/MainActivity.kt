@@ -41,7 +41,7 @@ fun HayatApp() {
     var isRunning by remember { mutableStateOf(false) }
     var emergencyStop by remember { mutableStateOf(false) }
     var selectedTab by remember { mutableStateOf("داشبورد") }
-
+var status by remember { mutableStateOf("آماده به کار") }
     var risk by remember { mutableStateOf("0.25") }
     var dailyLimit by remember { mutableStateOf("1.5") }
     var spreadLimit by remember { mutableStateOf("80") }
